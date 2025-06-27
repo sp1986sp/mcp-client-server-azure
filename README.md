@@ -150,8 +150,90 @@ The server implements advanced context propagation using custom `ThreadLocalAcce
 - **MDC**: Logging context is maintained for distributed tracing.
 - **Locale**: User locale is respected for internationalization.
 - **Request Attributes**: Request-scoped data is available in async tasks.
+- **Custom Context**: Application-specific context parameters are maintained.
 
 This is especially useful for distributed tracing, debugging, and ensuring consistent user experience in async and multi-threaded environments.
+
+### CustomContext ThreadLocal Flow
+
+The project implements a sophisticated custom context propagation system that maintains application-specific context across thread boundaries and async operations.
+
+#### Components
+
+1. **CustomContext**: Core utility class managing ThreadLocal storage
+2. **CustomContextParam**: Interface for defining context parameters
+3. **ContextParamDefault**: Enum defining default context parameters
+4. **CustomContextAccessor**: ThreadLocalAccessor implementation for custom context
+5. **ContextPropagationManager**: Orchestrates context capture and restoration
+6. **UnifiedContextInterceptor**: Captures context at request entry point
+7. **ContextRestorationService**: Restores context in async operations
+
+#### Default Context Parameters
+
+```java
+public enum ContextParamDefault implements CustomContextParam {
+  REQUEST_ID("REQUEST_ID"),
+  CORRELATION_ID("CORRELATION_ID"),
+  X_TRAFFIC_TYPE("x-traffic-type"),
+  X_TRAFFIC_COLOR("x-traffic-color");
+}
+```
+
+#### Context Flow Diagram
+
+```mermaid
+flowchart TD
+    A[HTTP Request] --> B[UnifiedContextInterceptor]
+    B --> C[Capture Headers]
+    B --> D[Capture MDC]
+    B --> E[Capture RequestAttributes]
+    B --> F[Capture LocaleContext]
+    B --> G[Initialize CustomContext]
+    G --> H[Set Default Values]
+    H --> I[Store in ThreadLocalAccessors]
+    I --> J[Request Processing]
+    J --> K[Async Tool Execution]
+    K --> L[ContextPropagationManager]
+    L --> M[Capture All Contexts]
+    M --> N[TaskDecorator]
+    N --> O[Restore Contexts in New Thread]
+    O --> P[Execute Tool]
+    P --> Q[ContextRestorationService]
+    Q --> R[Restore CustomContext]
+    Q --> S[Restore MDC]
+    Q --> T[Restore RequestAttributes]
+    Q --> U[Restore LocaleContext]
+    R --> V[Tool Execution with Context]
+    S --> V
+    T --> V
+    U --> V
+    V --> W[Response]
+```
+
+#### Context Lifecycle
+
+1. **Initialization**: `CustomContext.init()` creates new context with UUID-based request and correlation IDs
+2. **Capture**: All context types are captured in `UnifiedContextInterceptor.preHandle()`
+3. **Storage**: Contexts are stored in respective `ThreadLocalAccessor` implementations
+4. **Propagation**: `ContextPropagationManager` captures and restores contexts across thread boundaries
+5. **Restoration**: `ContextRestorationService` restores contexts in async operations
+6. **Cleanup**: Contexts are cleared after request completion
+
+#### Usage in Tools
+
+```java
+@Tool(name = "getAllUsers", description = "Get all users")
+public UsersResponse getAllUsers(int limit, int skip) {
+  // Restore all contexts and get headers
+  HttpHeaders httpHeaders = contextRestorationService.restoreAllContextsAndGetHeaders();
+
+  // Access custom context
+  String trafficType = CustomContext.get(ContextParamDefault.X_TRAFFIC_TYPE);
+  String trafficColor = CustomContext.get(ContextParamDefault.X_TRAFFIC_COLOR);
+
+  // Tool logic...
+}
+```
 
 ---
 
@@ -160,9 +242,14 @@ This is especially useful for distributed tracing, debugging, and ensuring consi
 ### Chat Request
 
 ```bash
-curl -X POST http://localhost:8080/chat \
-     -H "Content-Type: text/plain" \
-     -d "Show me all users older than 30"
+curl --request POST \
+  --url http://localhost:8080/chat \
+  --header 'Content-Language: en_US' \
+  --header 'Content-Type: text/plain' \
+  --header 'country: in' \
+  --header 'language: en' \
+  --header 'x-request-tracking-id: 12345' \
+  --data 'I want to have data for user id 6'
 ```
 
 ### Example Response
@@ -191,6 +278,7 @@ curl -X POST http://localhost:8080/chat \
 - Add new tools to the server by annotating methods in service classes with `@Tool`.
 - Register new tools in `ToolsConfig.java`.
 - Customize context propagation by implementing new `ThreadLocalAccessor`s.
+- Add new context parameters by implementing `CustomContextParam` interface.
 
 ---
 
@@ -199,6 +287,7 @@ curl -X POST http://localhost:8080/chat \
 - **Ports**: Ensure the server is running on the port specified in `server/src/main/resources/application.properties` (default: 8081).
 - **Azure OpenAI**: Make sure your API key and endpoint are correct and have sufficient quota.
 - **CORS**: The server is configured to allow CORS for `/sse` endpoints, but you may need to adjust for your environment.
+- **Context Issues**: Check logs for context propagation errors and ensure `CustomContext.init()` is called before accessing context.
 
 ---
 

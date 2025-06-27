@@ -71,11 +71,13 @@ This project demonstrates a distributed, context-aware AI system using the follo
 sequenceDiagram
     participant User
     participant Client
+    participant AI as Azure OpenAI
     participant Server
     User->>Client: POST /chat (user message)
-    Client->>Server: Forwards message, propagates context
-    Server->>Server: AI Tool/Service processes request
-    Server-->>Client: AI-generated response
+    Client->>AI: Sends prompt with registered tools
+    AI->>Server: Makes tool calls when needed
+    Server-->>AI: Returns tool results
+    AI->>Client: Returns AI response with tool results
     Client-->>User: Response (tabular format)
 ```
 

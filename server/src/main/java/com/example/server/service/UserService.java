@@ -1,6 +1,8 @@
 package com.example.server.service;
 
 
+import com.example.server.context.CustomContext;
+import com.example.server.model.ContextParamDefault;
 import com.example.server.model.User;
 import com.example.server.model.UsersResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +47,8 @@ public class UserService {
         // Single line to restore all contexts and get headers
         HttpHeaders httpHeaders = contextRestorationService.restoreAllContextsAndGetHeaders();
         System.out.println("Headers in Tool: " + httpHeaders);
+        System.out.println("CustomContext in Tool: "
+                + CustomContext.get(ContextParamDefault.X_TRAFFIC_TYPE));
 
         String url = BASE_URL + "/users?limit=" + limit + "&skip=" + skip;
         return restTemplate.getForObject(url, UsersResponse.class);
@@ -60,6 +64,8 @@ public class UserService {
         // Single line to restore all contexts and get headers
         HttpHeaders httpHeaders = contextRestorationService.restoreAllContextsAndGetHeaders();
         System.out.println("Headers in Tool: " + httpHeaders);
+        System.out.println("CustomContext in Tool: "
+                + CustomContext.get(ContextParamDefault.X_TRAFFIC_TYPE));
 
         String url = BASE_URL + "/users";
         return restTemplate.getForObject(url, UsersResponse.class);
@@ -76,6 +82,8 @@ public class UserService {
         // Single line to restore all contexts and get headers
         HttpHeaders httpHeaders = contextRestorationService.restoreAllContextsAndGetHeaders();
         System.out.println("Headers in Tool: " + httpHeaders);
+        System.out.println("CustomContext in Tool: "
+                + CustomContext.getObject(ContextParamDefault.X_TRAFFIC_TYPE));
 
         String url = BASE_URL + "/users/" + id;
         return restTemplate.getForObject(url, User.class);
@@ -92,6 +100,8 @@ public class UserService {
         // Single line to restore all contexts and get headers
         HttpHeaders httpHeaders = contextRestorationService.restoreAllContextsAndGetHeaders();
         System.out.println("Headers in Tool: " + httpHeaders);
+        System.out.println("CustomContext in Tool: "
+                + CustomContext.get(ContextParamDefault.X_TRAFFIC_TYPE));
 
         String url = BASE_URL + "/users/search?q=" + query;
         return restTemplate.getForObject(url, UsersResponse.class);
@@ -109,6 +119,8 @@ public class UserService {
         // Single line to restore all contexts and get headers
         HttpHeaders httpHeaders = contextRestorationService.restoreAllContextsAndGetHeaders();
         System.out.println("Headers in Tool: " + httpHeaders);
+        System.out.println("CustomContext in Tool: "
+                + CustomContext.get(ContextParamDefault.X_TRAFFIC_TYPE));
 
         String url = BASE_URL + "/users/add";
 
@@ -132,6 +144,8 @@ public class UserService {
         // Single line to restore all contexts and get headers
         HttpHeaders httpHeaders = contextRestorationService.restoreAllContextsAndGetHeaders();
         System.out.println("Headers in Tool: " + httpHeaders);
+        System.out.println("CustomContext in Tool: "
+                + CustomContext.get(ContextParamDefault.X_TRAFFIC_TYPE));
 
         String url = BASE_URL + "/users/" + id;
 
@@ -154,6 +168,8 @@ public class UserService {
         // Single line to restore all contexts and get headers
         HttpHeaders httpHeaders = contextRestorationService.restoreAllContextsAndGetHeaders();
         System.out.println("Headers in Tool: " + httpHeaders);
+        System.out.println("CustomContext in Tool: "
+                + CustomContext.get(ContextParamDefault.X_TRAFFIC_TYPE));
 
         String url = BASE_URL + "/users/" + id;
 

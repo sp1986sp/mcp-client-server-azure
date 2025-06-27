@@ -1,6 +1,8 @@
 package com.example.server.service;
 
 import com.example.server.accessors.accessorsImpl.*;
+import com.example.server.context.CustomContext;
+import com.example.server.model.CustomContextParam;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContext;
@@ -14,16 +16,19 @@ import java.util.Map;
 public class ContextRestorationService {
 
     private final HeaderContextAccessor headerContextAccessor;
+    private final CustomContextAccessor customContextAccessor;
     private final MdcAccessor mdcAccessor;
     private final RequestAttributesAccessor requestAttributesAccessor;
     private final LocaleContextAccessor localeContextAccessor;
 
     @Autowired
     public ContextRestorationService(HeaderContextAccessor headerContextAccessor,
+                                     CustomContextAccessor customContextAccessor,
                                      MdcAccessor mdcAccessor,
                                      RequestAttributesAccessor requestAttributesAccessor,
                                      LocaleContextAccessor localeContextAccessor) {
         this.headerContextAccessor = headerContextAccessor;
+        this.customContextAccessor = customContextAccessor;
         this.mdcAccessor = mdcAccessor;
         this.requestAttributesAccessor = requestAttributesAccessor;
         this.localeContextAccessor = localeContextAccessor;
@@ -35,6 +40,7 @@ public class ContextRestorationService {
      * @return HttpHeaders populated with request headers
      */
     public HttpHeaders restoreAllContextsAndGetHeaders() {
+        restoreCustomContext();
         restoreMDCContext();
         restoreRequestAttributes();
         restoreLocaleContext();
@@ -45,6 +51,7 @@ public class ContextRestorationService {
      * Restores all ThreadLocal contexts without returning headers
      */
     public void restoreAllContexts() {
+        restoreCustomContext();
         restoreMDCContext();
         restoreRequestAttributes();
         restoreLocaleContext();
@@ -64,6 +71,19 @@ public class ContextRestorationService {
             headers.forEach(httpHeaders::add);
         }
         return httpHeaders;
+    }
+
+    // Restoring Custom Thread Local in Tools
+    private void restoreCustomContext() {
+        Map<CustomContextParam, Object> customContext = customContextAccessor.getValue();
+        if (!CustomContext.isInitialized() && customContext != null) {
+            try {
+                CustomContext.setContextHolderMap(customContext); // Removed as method is undefined
+                System.out.println("CustomContext would be restored here if supported");
+            } catch (Exception e) {
+                System.err.println("Failed to restore CustomContext: " + e.getMessage());
+            }
+        }
     }
 
     private void restoreMDCContext() {

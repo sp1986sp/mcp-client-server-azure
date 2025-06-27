@@ -1,7 +1,10 @@
 package com.example.server.interceptor;
 
 import com.example.server.accessors.accessorsImpl.*;
+import com.example.server.context.CustomContext;
 import com.example.server.context.DetachedRequestAttributes;
+import com.example.server.model.ContextParamDefault;
+import com.example.server.model.CustomContextParam;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.MDC;
@@ -9,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContext;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -22,6 +26,9 @@ public class UnifiedContextInterceptor implements HandlerInterceptor {
 
     @Autowired
     private HeaderContextAccessor headerContextAccessor;
+
+    @Autowired
+    private CustomContextAccessor customContextAccessor;
 
     @Autowired
     private MdcAccessor mdcAccessor;
@@ -66,6 +73,14 @@ public class UnifiedContextInterceptor implements HandlerInterceptor {
         Map<String, String> mdcContext = MDC.getCopyOfContextMap();
         if (mdcContext != null) {
             mdcAccessor.setValue(mdcContext);
+        }
+
+        // Explicitly capture and store custom contexts thread local
+        if (!CustomContext.isInitialized()) {
+            CustomContext.init();
+            CustomContext.putObject(ContextParamDefault.X_TRAFFIC_COLOR, "blue");
+            CustomContext.putObject(ContextParamDefault.X_TRAFFIC_TYPE, "live");
+            customContextAccessor.setValue(CustomContext.getCopyOfContextHolderMap());
         }
 
         return true;

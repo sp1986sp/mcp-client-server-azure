@@ -74,10 +74,14 @@ sequenceDiagram
     participant AI as Azure OpenAI
     participant Server
     User->>Client: POST /chat (user message)
-    Client->>AI: Sends prompt with registered tools
-    AI->>Server: Makes tool calls when needed
-    Server-->>AI: Returns tool results
-    AI->>Client: Returns AI response with tool results
+    Client->>Server: Gets tool definitions
+    Server-->>Client: Returns tool definitions
+    Client->>AI: Sends prompt with tool definitions
+    AI->>Client: Returns AI response with tool calls
+    Client->>Server: Executes tool calls
+    Server-->>Client: Returns tool results
+    Client->>AI: Sends tool results for final response
+    AI->>Client: Returns final AI response
     Client-->>User: Response (tabular format)
 ```
 
